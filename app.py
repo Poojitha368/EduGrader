@@ -1,72 +1,143 @@
-from flask import Flask,render_template,session,redirect,request,flash
+from flask import Flask,render_template,session,request,flash,redirect,url_for
 from flask_mysqldb import MySQL
 import yaml
-
+from flask_session import Session
 
 app = Flask(__name__)
 
+app.secret_key = 'your_secret_key'  # Needed for flashing messages
 
-with open('db.yaml', 'r') as file:
-    db = yaml.load(file, Loader=yaml.FullLoader)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 
 # Configure MySQL
-app.config['MYSQL_HOST'] = db['mysql_host']
-app.config['MYSQL_USER'] = db['mysql_user']
-app.config['MYSQL_PASSWORD'] = db['mysql_password']
-app.config['MYSQL_DB'] = db['mysql_db']
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'password'
+app.config['MYSQL_DB'] = 'edugrader'
 
 mysql = MySQL(app)
 
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def home():
+    return render_template('index.html')
+
+@app.route("/register", methods=["POST", "GET"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        email = request.form.get("email")
+
+
+        # session["username"] = username
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO user(username, password, email) VALUES (%s, %s, %s)", (username, password, email))
+        mysql.connection.commit()
+        cur.close()
+        return redirect("/")
+    return render_template("register.html")
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        # role = request.form.get("role")
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT username, password, FROM user WHERE username = %s AND password = %s", (username, password))
+        cur.execute("SELECT username,id,password FROM user WHERE username = %s AND password = %s", (username, password))
         existing_user = cur.fetchone()
         cur.close()
 
         if existing_user:
             session["username"] = username
-            session["role_id"] = existing_user[2]
-
-            flash("login successful")
+            session["id"]=existing_user[1]
+            flash("login successfull",'success')
+            return redirect("/grading")
         else:
             flash('Invalid credentials, please try again.', 'danger')
 
     return render_template("login.html")
 
-@app.route("/register", methods=["POST", "GET"])
-def register():
+@app.route('/grading', methods=["POST", "GET"])
+def grading():
+    if not session.get("username"):
+        return redirect("/login")
     if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email")
-        password = request.form.get("password")
-        # role = request.form.get("role")
+        question = request.form.get("question")
+        answer = request.form.get("answer")
 
+        print("Received question:", question)  # Debugging statement
+        print("Received answer:", answer)  # Debugging statement
+
+        id = session.get("id")
         cur = mysql.connection.cursor()
-        cur.execute("SELECT username, email, password, FROM user WHERE username = %s , email = %s AND password = %s", (username, email, password))
-        existing_user = cur.fetchone()
+        cur.execute("INSERT INTO history(question, answer,user_id) VALUES (%s, %s,%s)", (question, answer,id))
+        mysql.connection.commit()
         cur.close()
+        return redirect('/grading')
 
-        if existing_user:
-            session["username"] = username
+    return render_template('grading.html')
 
-            flash("registration successful")
-        else:
-            flash('Invalid credentials, please try again.', 'danger')
+@app.route("/profile")
+def profile():
+    username = session.get("username")
+    if not username:
+        return redirect('/login')
+    
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT username, email FROM user WHERE username = %s", (username,))
+    profile_details = cur.fetchone()
+    
+    if profile_details:
+        email = profile_details[1]  # email should be index 1
+        username = profile_details[0]  # username should be index 0
+        cur.close()
+        return render_template('profile.html', username=username, email=email)
+    else:
+        cur.close()
+        return redirect('/login')
 
-    return render_template("register.html")
 
 
+
+@app.route("/logout")
+def logout():
+    session["username"] = None
+    return redirect("/")
+
+# @app.route("/update_profile")
+# def update_profile():
+#     return 
+
+@app.route('/subscribe')
+def subscribe():
+    if not session.get("username"):
+        return redirect("/login")
+    return render_template('subscribe.html')
+
+@app.route('/history')
+def history():
+    if not session.get("username"):
+        return redirect("/login")
+    id = session.get('id')
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT question, answer,marks,feedback,qno FROM history WHERE user_id = %s", (id,))
+    history = cur.fetchall()
+    cur.close()
+    return render_template('history.html',history=history)
+
+@app.route('/delete/<int:qno>', methods=['POST'])
+def delete(qno):
+    if not session.get("username"):
+        return redirect("/login")
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM history WHERE qno = %s", (qno,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect('/history')
 
 
 
