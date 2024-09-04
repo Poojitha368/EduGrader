@@ -20,5 +20,24 @@ Grading Page
             <button type="submit" class="btn btn-primary">Analyze</button>
         </div>
     </form>
+
+    {% if marks and feedback %}
+        <hr>
+        <h3>Results:</h3>
+        <p><strong>Question:</strong> {{ question }}</p>
+        <p><strong>Answer:</strong> {{ answer }}</p>
+        <p><strong>Grade:</strong> {{ marks }}/10</p>
+        <p><strong>Feedback:</strong> {{ feedback }}</p>
+    {% endif %}
+
+    <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %} -->
 </div>
 {% endblock body %}
