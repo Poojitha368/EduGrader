@@ -6,7 +6,7 @@ pip install requirements.txt
 <p></p>
 For databases:
 CREATE DATABASE edugrader;
-
+<p></p>
 USE edugrader;
 
 CREATE TABLE user (
