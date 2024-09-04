@@ -6,7 +6,7 @@ pip install -r requirements.txt
 
 
 <p></p>
-**For databases:**
+**For databases:(MySql)**
 <p></p>
 CREATE DATABASE edugrader;
 <p></p>
