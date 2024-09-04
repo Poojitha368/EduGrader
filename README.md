@@ -1,11 +1,12 @@
 # EduGrader
 
-Requirements for running the project:
+**Requirements for running the project:**
 <p></p>
-pip install requirements.txt
+pip install -r requirements.txt
+
 
 <p></p>
-For databases:
+**For databases:**
 <p></p>
 CREATE DATABASE edugrader;
 <p></p>
