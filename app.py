@@ -1,7 +1,47 @@
 from flask import Flask,render_template,session,request,flash,redirect,url_for
 from flask_mysqldb import MySQL
-import yaml
 from flask_session import Session
+# changes 
+import google.generativeai as genai
+import json
+
+# Configure Gemini API # changes
+genai.configure(api_key="AIzaSyAmMUlrCJrh_AKOg37SD893gfmY9gfOqUg")
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+#changes
+def get_gemini_grade_feedback(question, paragraph):
+    input_prompt = f'''
+    You are an expert grader. Please evaluate the following answer based on the given question. 
+    Provide a grade (out of 10) and give constructive feedback in 50 words.
+    
+    Question: {question}
+    
+    Answer: {paragraph}
+    '''
+    response = model.generate_content([input_prompt])
+    
+    # Log the raw response for debugging
+    print("API Response:", response.text)
+    
+    # Extract grade and feedback from the plain text response
+    try:
+        response_text = response.text.strip()
+        
+        # Find the grade in the response
+        grade_start = response_text.find("Grade: ") + len("Grade: ")
+        grade_end = response_text.find("/10", grade_start)
+        grade = response_text[grade_start:grade_end].strip()
+
+        # Find the feedback in the response
+        feedback_start = response_text.find("\n", grade_end) + 1
+        feedback = response_text[feedback_start:].strip()
+        
+        return grade, feedback
+    except Exception as e:
+        print(f"Error extracting grade and feedback: {str(e)}")
+        return None, "Error parsing the response"
+
 
 app = Flask(__name__)
 
@@ -61,25 +101,42 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route('/grading', methods=["POST", "GET"])
 def grading():
     if not session.get("username"):
         return redirect("/login")
+    
     if request.method == "POST":
-        question = request.form.get("question")
-        answer = request.form.get("answer")
+        question = request.form.get("question").strip()
+        answer = request.form.get("answer").strip()
+
+        # Validate inputs
+        if not question or not answer:
+            flash("Both question and answer fields are required.", "danger")
+            return render_template('grading.html')
 
         print("Received question:", question)  # Debugging statement
         print("Received answer:", answer)  # Debugging statement
 
         id = session.get("id")
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO history(question, answer,user_id) VALUES (%s, %s,%s)", (question, answer,id))
-        mysql.connection.commit()
-        cur.close()
-        return redirect('/grading')
+        marks, feedback = get_gemini_grade_feedback(question, answer)
+        print("Marks:", marks)  # Debugging statement
+        print("Feedback:", feedback)  # Debugging statement
+        
+        if marks and feedback:
+            cur.execute("INSERT INTO history(question, answer, user_id, marks, feedback) VALUES (%s, %s, %s, %s, %s)", (question, answer, id, marks, feedback))
+            mysql.connection.commit()
+            cur.close()
+            return render_template('grading.html', marks=marks, feedback=feedback, question=question, answer=answer)
+        else:
+            flash('Error in grading process. Please try again.', 'danger')
+            cur.close()
+            return render_template('grading.html')
 
     return render_template('grading.html')
+
 
 @app.route("/profile")
 def profile():
