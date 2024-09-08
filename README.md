@@ -5,7 +5,7 @@
 ```
 pip install -r requirements.txt
 
-
+```
 <p></p>
 **For databases:(MySql)**
 <p></p>
