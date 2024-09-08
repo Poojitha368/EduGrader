@@ -4,11 +4,6 @@
 <p></p>
 ```
 
-
-```
-**For databases:(MySql)**
-```
-
 ```
 pip install -r requirements.txt
 CREATE DATABASE edugrader;
