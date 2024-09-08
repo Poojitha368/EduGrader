@@ -9,7 +9,9 @@ pip install -r requirements.txt
 <p></p>
 **For databases:(MySql)**
 <p></p>
+```
 CREATE DATABASE edugrader;
+```
 <p></p>
 USE edugrader;
 
@@ -37,3 +39,4 @@ FOREIGN KEY (user_id) REFERENCES user(id);
 select *  from user;
 
 select * from history;
+
