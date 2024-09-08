@@ -2,8 +2,11 @@
 
 **Requirements for running the project:**
 
-```
 pip install -r requirements.txt
+```
+
+
+```
 CREATE DATABASE edugrader;
 USE edugrader;
 
