@@ -2,6 +2,7 @@
 
 **Requirements for running the project:**
 <p></p>
+```
 pip install -r requirements.txt
 
 
