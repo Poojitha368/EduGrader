@@ -3,16 +3,15 @@
 **Requirements for running the project:**
 <p></p>
 ```
-pip install -r requirements.txt
+
 
 ```
-<p></p>
 **For databases:(MySql)**
-<p></p>
 ```
+
+```
+pip install -r requirements.txt
 CREATE DATABASE edugrader;
-```
-<p></p>
 USE edugrader;
 
 CREATE TABLE user (
