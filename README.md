@@ -34,5 +34,7 @@ select *  from user;
 
 select * from history;
 
-![Homepage](https://github.com/user-attachments/assets/d69b5507-3587-4b6b-80a9-5d904e4ba60f)
+```
+
+![Homepage](https://github.com/user-attachments/assets/e4437aeb-cf46-461a-a9b4-0211d944b960)
 
