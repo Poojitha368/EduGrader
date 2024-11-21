@@ -6,33 +6,30 @@
 pip install -r requirements.txt
 ```
 ```
+
 CREATE DATABASE edugrader;
 USE edugrader;
 
 CREATE TABLE user (
-    id INT PRIMARY KEY,
-    username varchar(50),
-    password varchar(50),
-    email varchar(50)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    password VARCHAR(50),
+    email VARCHAR(50)
 );
 
-create table history(
-	qno int primary key,
-    question varchar(1500),
-    answer varchar(1500),
-    feedback varchar(1500),
-    marks int
+
+CREATE TABLE history (
+    qno INT AUTO_INCREMENT PRIMARY KEY,
+    question VARCHAR(1500),
+    answer VARCHAR(1500),
+    feedback VARCHAR(1500),
+    marks INT,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES user(id)  -- foreign key constraint
 );
 
-ALTER TABLE history ADD COLUMN user_id INT;
 
-ALTER TABLE history
-ADD CONSTRAINT fk_user_id
-FOREIGN KEY (user_id) REFERENCES user(id);
 
-select *  from user;
-
-select * from history;
 
 ```
 
